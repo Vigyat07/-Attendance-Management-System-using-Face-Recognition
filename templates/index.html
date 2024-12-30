@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Recognition Attendance System</title>
+    <style>
+        /* Basic reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            display: flex;
+        }
+
+        .container {
+            display: flex;
+            width: 100%;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            background-color: #4CAF50;
+            color: white;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: fixed;
+            height: 100%;
+        }
+
+        .sidebar h1 {
+            font-size: 1.5em;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        /* Right Content Area */
+        .main-content {
+            margin-left: 260px;
+            width: 100%;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h2 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        p {
+            font-size: 1em;
+            color: #666;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+
+        button {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        section {
+            margin-bottom: 30px;
+        }
+
+        /* Status Messages */
+        .status-message {
+            display: none;
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            padding: 20px;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 8px;
+            margin-top: 50px;
+        }
+
+        #back-btn {
+            display: none;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #333;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1.2em;
+            cursor: pointer;
+        }
+
+        #back-btn:hover {
+            background-color: #555;
+        }
+
+        /* Make sure the content area is centered */
+        .status-message-container {
+            text-align: center;
+            margin-top: 100px;
+        }
+
+        /* For responsiveness */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 200px;
+            }
+
+            .main-content {
+                margin-left: 220px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h1>Face Recognition Attendance App</h1>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <header>
+                <h2>Face Recognition Attendance System</h2>
+                <p>Welcome! Capture your face, train the model, and mark attendance directly through the browser.</p>
+            </header>
+
+            <section>
+                <h2>Capture Images for Training</h2>
+                <form id="capture-form">
+                    <label for="name">Enter your name:</label>
+                    <input type="text" id="name" name="name" required>
+                    <button type="button" id="capture-btn">Capture Images</button>
+                </form>
+                <p id="capture-status"></p>
+            </section>
+
+            <section>
+                <h2>Train the Model</h2>
+                <button type="button" id="train-btn">Train Model</button>
+                <p id="train-status"></p>
+            </section>
+
+            <section>
+                <h2>Mark Attendance</h2>
+                <button type="button" id="attendance-btn">Mark Attendance</button>
+                <p id="attendance-status"></p>
+            </section>
+
+            <section>
+                <h2>View Attendance</h2>
+                <button type="button" id="view-attendance-btn">View Attendance</button>
+                <div id="attendance-table"></div>
+            </section>
+
+            <!-- Status Message Area -->
+            <div class="status-message-container">
+                <div class="status-message" id="status-message"></div>
+                <button id="back-btn">Go Back</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Show status message and Go Back button
+            function showStatusMessage(message) {
+                $('#status-message').text(message);
+                $('#status-message').show();
+                $('#back-btn').show();
+            }
+
+            // Hide status message and Go Back button
+            function hideStatusMessage() {
+                $('#status-message').hide();
+                $('#back-btn').hide();
+            }
+
+            // Capture image button click
+            $('#capture-btn').click(function() {
+                var name = $('#name').val();
+                if (name) {
+                    $('#capture-status').text('Capturing images, please check your webcam.');
+                    $.post('/capture', { name: name }, function(response) {
+                        $('#capture-status').text(response.status);
+                    });
+                    showStatusMessage("Image is being captured. Please stay still!");
+                } else {
+                    alert('Please enter your name!');
+                }
+            });
+
+            // Train model button click
+            $('#train-btn').click(function() {
+                $('#train-status').text('Training the model...');
+                $.post('/train', function(response) {
+                    $('#train-status').text(response.status);
+                    showStatusMessage("Model trained successfully. Thanks!");
+                });
+            });
+
+            // Mark attendance button click
+            $('#attendance-btn').click(function() {
+                $('#attendance-status').text('Processing...');
+                $.post('/mark_attendance', function(response) {
+                    $('#attendance-status').text(response.status);
+                    showStatusMessage("Face recognized, attendance marked for " + response.status.split(' ').pop() + "!");
+                });
+            });
+
+            // View attendance button click
+            $('#view-attendance-btn').click(function() {
+                $.get('/view_attendance', function(response) {
+                    $('#attendance-table').html(response);
+                });
+            });
+
+            // Go back button click
+            $('#back-btn').click(function() {
+                hideStatusMessage();
+            });
+        });
+    </script>
+</body>
+</html>
